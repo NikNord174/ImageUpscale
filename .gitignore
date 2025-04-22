@@ -1,0 +1,5 @@
+data/**
+venv/**
+experiments/**
+outputs/**
+__pycache__
