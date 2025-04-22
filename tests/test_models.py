@@ -21,5 +21,6 @@ if __name__ == "__main__":
     total_params = sum(p.numel() for p in model.parameters())
     print(f"\nTotal parameters: {total_params:,}")
 
-    trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    trainable_params = sum(p.numel()
+                           for p in model.parameters() if p.requires_grad)
     print(f"Trainable parameters: {trainable_params:,}")
