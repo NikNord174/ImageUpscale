@@ -1,0 +1,31 @@
+FROM python:3.11.6
+
+RUN apt-get update && \
+    apt -y dist-upgrade && \
+    apt-get -y install software-properties-common apt-utils && \
+    apt-get -y install build-essential cmake unzip git wget curl tmux sysstat \
+    vim libtcmalloc-minimal4 pkgconf autoconf libtool \
+    # install packages for opencv
+    libsm6 libxext6 libxrender1 libssl-dev libsndfile1 libgl1 libglib2.0-0 && \
+    # create symbolic links
+    ln -s /usr/bin/python3.11 /usr/bin/python && \
+    ln -sf /usr/bin/python3.11 /usr/bin/python3 && \
+    ln -sf /usr/bin/pip3 /usr/bin/pip && \
+    # clean retrieved package files that are left in /var/cache
+    apt-get clean &&\
+    # clean unused dependencies
+    apt-get autoremove &&\
+    rm -rf /var/lib/apt/lists/* &&\
+    rm -rf /var/cache/apt/archives/*
+
+COPY requirements.txt /tmp/requirements.txt
+RUN pip3 install -r /tmp/requirements.txt
+
+# Install PyTorch
+RUN pip3 install torch==2.0.1 torchvision==0.15.2 --index-url \
+    https://download.pytorch.org/whl/cpu
+
+ENV PYTHONPATH $PYTHONPATH:/workdir
+ENV TORCH_HOME=/workdir/data/.torch
+
+WORKDIR /workdir
