@@ -1,5 +1,5 @@
 pytorch-argus==1.0.0
-numpy==1.26.0
+numpy==1.23.5
 scipy==1.11.3
 timm==0.9.7
 opencv-python-headless==4.8.1.78
