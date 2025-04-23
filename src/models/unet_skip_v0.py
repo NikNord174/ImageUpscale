@@ -108,9 +108,11 @@ class OutConv(nn.Module):
     """
     Output convolution block
     """
-    def __init__(self, in_channels, out_channels):
+    def __init__(self, in_channels, out_channels, padding=0, stride=1):
         super().__init__()
-        self.conv = nn.Conv2d(in_channels, out_channels, kernel_size=1)
+        self.conv = nn.Conv2d(
+            in_channels, out_channels, kernel_size=1,
+            padding=padding, stride=stride)
 
     def forward(self, x):
         return self.conv(x)
@@ -120,14 +122,14 @@ class UNet(nn.Module):
     """
     UNet architecture for 1×128×128 input to 1×512×512 output
     """
-    def __init__(self, n_channels=1, n_classes=1, bilinear=True):
+    def __init__(self, n_channels=1, o_channels=1, bilinear=True):
         super(UNet, self).__init__()
-        self.n_channels = n_channels
-        self.n_classes = n_classes
+        self.n_channels = n_channels[0]
+        self.o_channels = o_channels[0]
         self.bilinear = bilinear
 
         # Initial input processing
-        self.inc = DoubleConv(n_channels, 64)
+        self.inc = DoubleConv(self.n_channels, 64)
 
         # Downsampling path
         self.down1 = Down(64, 128)
@@ -143,7 +145,7 @@ class UNet(nn.Module):
         self.up4 = Up(128, 64, bilinear, scale_factor=2)  # 512x512
 
         # Output layer
-        self.outc = OutConv(64, n_classes)
+        self.outc = OutConv(64, self.o_channels, padding=2)
 
     def forward(self, x):
         # Encoder path
