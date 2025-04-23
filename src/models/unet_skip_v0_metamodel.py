@@ -6,7 +6,7 @@ from argus.utils import deep_to, deep_detach
 from src.models.unet_skip_v0 import UNet
 
 
-class DumbMetaModel(Model):
+class UNetMetaModel(Model):
     nn_module = UNet
     optimizer = torch.optim.AdamW
     loss = nn.MSELoss
