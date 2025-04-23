@@ -7,7 +7,7 @@ from src.models.unet_skip_v0 import UNet
 if __name__ == "__main__":
     # Create a UNet model
     model = UNet(n_channels=1, n_classes=1)
-    print('Model: ', model)
+    # print('Model: ', model)
 
     # Create a test input tensor (batch_size, channels, height, width)
     x = torch.randn(1, 1, 128, 128)
