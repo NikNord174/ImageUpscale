@@ -50,7 +50,7 @@ class Up(nn.Module):
     """
     def __init__(
             self, in_channels, out_channels,
-            bilinear=True, scale_factor=2):
+            bilinear=True, scale_factor=4):
         super().__init__()
         self.in_channels = in_channels
         self.out_channels = out_channels
@@ -80,11 +80,11 @@ class Up(nn.Module):
             return self.conv(x1)
 
         # Input is CHW
-        diffY = x2.size()[2] - x1.size()[2]
-        diffX = x2.size()[3] - x1.size()[3]
+        diffY = x1.size()[2] - x2.size()[2]
+        diffX = x1.size()[3] - x2.size()[3]
 
         # Pad x1 if sizes don't match
-        x1 = F.pad(x1, [diffX // 2, diffX - diffX // 2,
+        x2 = F.pad(x2, [diffX // 2, diffX - diffX // 2,
                         diffY // 2, diffY - diffY // 2])
         # Concatenate along channel dimension
         x = torch.cat([x2, x1], dim=1)
@@ -137,17 +137,13 @@ class UNet(nn.Module):
 
         # Bottom of U-Net - smallest feature map 8x8
         # Upsampling path with skip connections
-        self.up1 = Up(1024, 512, bilinear)           # to 16x16
-        self.up2 = Up(512, 256, bilinear)            # to 32x32
-        self.up3 = Up(256, 128, bilinear)            # to 64x64
-        self.up4 = Up(128, 64, bilinear)             # to 128x128
-
-        # Additional upsampling layers to reach 512x512
-        self.up5 = Up(64, 32, bilinear, scale_factor=2)  # to 256x256
-        self.up6 = Up(32, 16, bilinear, scale_factor=2)  # to 512x512
+        self.up1 = Up(1024, 512, bilinear, scale_factor=4)  # 32x32
+        self.up2 = Up(512, 256, bilinear, scale_factor=4)  # 128x128
+        self.up3 = Up(256, 128, bilinear, scale_factor=2)  # 256x256
+        self.up4 = Up(128, 64, bilinear, scale_factor=2)  # 512x512
 
         # Output layer
-        self.outc = OutConv(16, n_classes)
+        self.outc = OutConv(64, n_classes)
 
     def forward(self, x):
         # Encoder path
@@ -163,8 +159,5 @@ class UNet(nn.Module):
         x = self.up3(x, x2)   # 64x64
         x = self.up4(x, x1)   # 128x128
 
-        # Additional upsampling without skip connections to reach 512x512
-        x = self.up5(x)       # 256x256
-        x = self.up6(x)       # 512x512
         x = self.outc(x)      # 512x512
         return x
