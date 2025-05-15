@@ -1,5 +1,5 @@
 PROJECT_NAME=image-upscale
-VERSION=0.0.0
+VERSION=0.4.0
 
 IMAGE_NAME=${PROJECT_NAME}:${VERSION}
 CONTAINER_NAME=${PROJECT_NAME}
@@ -21,8 +21,7 @@ run-mac:
 
 run-cuda:
 	docker run --rm -it \
-	-v /tmp/.X11-unix:/tmp/.X11-unix \
-    -v $(HOME)/.Xauthority:/root/.Xauthority:rw \
+	--gpus all \
 	-v ${shell pwd}:/workdir/ \
 	--name ${CONTAINER_NAME}-cuda \
 	${IMAGE_NAME}-cuda \

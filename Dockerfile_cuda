@@ -1,36 +1,17 @@
-ARG CUDA_VERSION=11.8.0
+ARG CUDA_VERSION=12.4.1
 
-FROM python:3.11.6
-# ENV LANG C.UTF-8
-# ENV DEBIAN_FRONTEND noninteractive
+FROM nvidia/cuda:${CUDA_VERSION}-cudnn-devel-ubuntu22.04
 
 RUN apt-get update && \
-    apt -y dist-upgrade && \
-    apt-get -y install software-properties-common apt-utils && \
-    apt-get -y install build-essential cmake unzip git wget curl tmux sysstat \
-    vim libtcmalloc-minimal4 pkgconf autoconf libtool \
-    # install packages for opencv
-    libsm6 libxext6 libxrender1 libssl-dev libsndfile1 libgl1 libglib2.0-0 && \
-    # create symbolic links
-    ln -s /usr/bin/python3.11 /usr/bin/python && \
-    ln -sf /usr/bin/python3.11 /usr/bin/python3 && \
-    ln -sf /usr/bin/pip3 /usr/bin/pip && \
-    # clean retrieved package files that are left in /var/cache
-    apt-get clean &&\
-    # clean unused dependencies
-    apt-get autoremove &&\
-    rm -rf /var/lib/apt/lists/* &&\
-    rm -rf /var/cache/apt/archives/*
+    apt-get -y install sudo python3.11 python3-pip && \
+    pip3 install --upgrade pip
 
+RUN pip3 install torch torchvision \
+    --index-url https://download.pytorch.org/whl/cu128
+
+RUN apt-get -y install git
 COPY requirements.txt /tmp/requirements.txt
 RUN pip3 install -r /tmp/requirements.txt
 
-# Install PyTorch
-RUN pip3 install torch==2.0.1 torchvision==0.15.2 --index-url \
-    https://download.pytorch.org/whl/cpu
-
-# ENV CUDA_DEVICE_ORDER=PCI_BUS_ID
-ENV PYTHONPATH $PYTHONPATH:/workdir
-ENV TORCH_HOME=/workdir/data/.torch
-
+ENV PYTHONPATH=$PYTHONPATH:/workdir
 WORKDIR /workdir

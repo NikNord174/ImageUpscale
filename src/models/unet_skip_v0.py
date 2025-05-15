@@ -23,7 +23,7 @@ class DoubleConv(nn.Module):
                 kernel_size=3, padding=1, bias=False),
             nn.BatchNorm2d(out_channels),
             nn.LeakyReLU(inplace=True)
-        )
+        ).to('cuda')
 
     def forward(self, x):
         return self.double_conv(x)
@@ -127,25 +127,27 @@ class UNet(nn.Module):
         self.n_channels = n_channels[0]
         self.o_channels = o_channels[0]
         self.bilinear = bilinear
+        self.device = 'cuda'
 
         # Initial input processing
-        self.inc = DoubleConv(self.n_channels, 64)
+        self.inc = DoubleConv(self.n_channels, 64).to(self.device)
 
         # Downsampling path
-        self.down1 = Down(64, 128)
-        self.down2 = Down(128, 256)
-        self.down3 = Down(256, 512)
-        self.down4 = Down(512, 1024 // (2 if bilinear else 1))
+        self.down1 = Down(64, 128).to(self.device)
+        self.down2 = Down(128, 256).to(self.device)
+        self.down3 = Down(256, 512).to(self.device)
+        self.down4 = Down(512, 1024 // (2 if bilinear else 1)).to(self.device)
 
         # Bottom of U-Net - smallest feature map 8x8
         # Upsampling path with skip connections
-        self.up1 = Up(1024, 512, bilinear, scale_factor=4)  # 32x32
-        self.up2 = Up(512, 256, bilinear, scale_factor=4)  # 128x128
-        self.up3 = Up(256, 128, bilinear, scale_factor=2)  # 256x256
-        self.up4 = Up(128, 64, bilinear, scale_factor=2)  # 512x512
+        self.up1 = Up(1024, 512, bilinear, scale_factor=4).to(self.device)  # 32x32
+        self.up2 = Up(512, 256, bilinear, scale_factor=4).to(self.device)  # 128x128
+        self.up3 = Up(256, 128, bilinear, scale_factor=2).to(self.device)  # 256x256
+        self.up4 = Up(128, 64, bilinear, scale_factor=2).to(self.device)  # 512x512
 
         # Output layer
-        self.outc = OutConv(64, self.o_channels, padding=2)
+        self.outc = OutConv(64, self.o_channels, padding=2).to(self.device)
+
 
     def forward(self, x):
         # Encoder path
@@ -154,7 +156,6 @@ class UNet(nn.Module):
         x3 = self.down2(x2)   # 32x32
         x4 = self.down3(x3)   # 16x16
         x5 = self.down4(x4)   # 8x8
-
         # Decoder path with skip connections
         x = self.up1(x5, x4)  # 16x16
         x = self.up2(x, x3)   # 32x32

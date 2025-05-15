@@ -19,7 +19,6 @@ class SSIM(Metric):
         self.value: float = 0.0
 
     def update(self, step_output: dict):
-        print(self.metric)
         pred = step_output['prediction']
         target = step_output['target']
         mse = self.metric(target, pred)
