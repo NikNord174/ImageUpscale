@@ -14,7 +14,8 @@ class UpDataset(Dataset):
             transform=None):
         super().__init__()
         assert os.path.exists(file_path)
-        self.train_size = img_size
+        self.train_size = img_size // 4
+        self.target_size = img_size
         self.pats = self._read_up_file(file_path)
         self.transform = transform
 
@@ -39,4 +40,6 @@ class UpDataset(Dataset):
         target = to_tensor(self.pats[idx])
         image = self.pats[idx]
         image = resize_image_torch(image, self.train_size)
+        target = resize_image_torch(target, self.target_size)
+        print('Image size: ', image.size(), 'Target size: ', target.size())
         return image, target

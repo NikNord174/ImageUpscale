@@ -7,7 +7,7 @@ model:
   _target_: src.models.unet_skip_v0_metamodel.UNetMetaModel
   params:
     pretrain: null
-    device: cuda:0
+    device: cuda
     nn_module:
       n_channels:
       - 1
