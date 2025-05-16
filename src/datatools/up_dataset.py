@@ -14,7 +14,7 @@ class UpDataset(Dataset):
             transform=None):
         super().__init__()
         assert os.path.exists(file_path)
-        self.train_size = img_size // 4
+        self.train_size = (img_size[0] // 4, img_size[1] // 4)
         self.target_size = img_size
         self.pats = self._read_up_file(file_path)
         self.transform = transform
@@ -37,9 +37,10 @@ class UpDataset(Dataset):
 
     def __getitem__(self, idx: int):
         # Add a new axis for the channel
-        target = to_tensor(self.pats[idx])
+        # target = to_tensor(self.pats[idx])
         image = self.pats[idx]
+        target = self.pats[idx]
         image = resize_image_torch(image, self.train_size)
         target = resize_image_torch(target, self.target_size)
-        print('Image size: ', image.size(), 'Target size: ', target.size())
+        # print('Image size: ', image.size(), 'Target size: ', target.size())
         return image, target

@@ -25,10 +25,11 @@ def resize_image_torch(image, target_size):
         image: input image
         target_size: Tuple of (height, width) for the target size
     """
+    # if isinstance(image, np.ndarray):
     image = image.astype(np.uint8)
-    pil_img = Image.fromarray(image)
+    image = Image.fromarray(image)
     transform = transforms.Compose([
         transforms.Resize(target_size),
         transforms.ToTensor()
     ])
-    return transform(pil_img)
+    return transform(image)
