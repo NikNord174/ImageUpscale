@@ -50,10 +50,10 @@ class UNet(nn.Module):
  
         else:
             # Use transposed convolutions
-            self.up_seq1 = nn.ConvTranspose2d(512, 512, kernel_size=2, stride=4)
-            self.up_seq2 = nn.ConvTranspose2d(256, 256, kernel_size=2, stride=4)
-            self.up_seq3 = nn.ConvTranspose2d(128, 128, kernel_size=2, stride=2)
-            self.up_seq4 = nn.ConvTranspose2d(64, 64, kernel_size=2, stride=2)
+            self.up_seq1 = nn.ConvTranspose2d(512, 512, kernel_size=3, stride=4)
+            self.up_seq2 = nn.ConvTranspose2d(256, 256, kernel_size=3, stride=4)
+            self.up_seq3 = nn.ConvTranspose2d(128, 128, kernel_size=3, stride=2)
+            self.up_seq4 = nn.ConvTranspose2d(64, 64, kernel_size=3, stride=2)
             
             # Convolution parts
             self.conv1 = self.double_conv(512 + 512, 512)
@@ -99,7 +99,7 @@ class UNet(nn.Module):
             up_seq = nn.ConvTranspose2d(
                 in_channels, in_channels // 2,
                 kernel_size=2, stride=scale_factor)
-            self.conv = double_conv(
+            self.conv = self.double_conv(
                 in_channels, out_channels)
         return up_seq
 
@@ -115,7 +115,7 @@ class UNet(nn.Module):
         x = torch.cat([x2, x1], dim=1)
         return x, x.size(1)
 
-    def up(self, in_channels, out_channels, bilinear=True, scale_factor=4):
+    def up(self, in_channels, out_channels, bilinear=True, scale_factor=2):
         # up_seq, conv = self._bilinear(in_channels, out_channels, bilinear)
         
         # # Upsample x1
@@ -151,7 +151,7 @@ class UNet(nn.Module):
 
     def out_conv(self, in_channels, out_channels, padding=0, stride=1):
         return nn.Conv2d(
-            in_channels, out_channels, kernel_size=1,
+            in_channels, out_channels, kernel_size=5,
             padding=padding, stride=stride)
 
     def forward(self, x):

@@ -1,13 +1,13 @@
 metadata:
-  experiment_name: test
-  run_name: 004
+  experiment_name: test target resize
+  run_name: 005
   description: test learning process
   author: Nikolai Orlov
 model:
   _target_: src.models.unet_skip_v0_metamodel.UNetMetaModel
   params:
     pretrain: null
-    device: cuda
+    device: cpu
     nn_module:
       n_channels:
       - 1
@@ -22,13 +22,13 @@ train_params:
   reduce_lr_factor: 0.5
   reduce_lr_patience: 8
   monitor_metric: train_ssim
-  monitor_metric_better: min
+  monitor_metric_better: max
 data:
   train:
-  - /workdir/data/poly-Ni_scan3_15kV_100pA_WD8-1_bin1_sat0070_ex140ms_gain00_gut00_step3500nm_2318points_.up2
+  - /workdir/data/poly-Ni_scan6_15kV_100pA_WD8-1_bin1_sat0100_exp140ms_gain00_gut00_step3500nm_2303points_.up2
   
   valid:
-  - /workdir/data/poly-Ni_scan3_15kV_100pA_WD8-1_bin1_sat0070_ex140ms_gain00_gut00_step3500nm_2318points_.up2
+  - /workdir/data/poly-Ni_scan6_15kV_100pA_WD8-1_bin1_sat0100_exp140ms_gain00_gut00_step3500nm_2303points_.up2
   
   data_params:
     img_size: ${tuple:128,128}
