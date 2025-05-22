@@ -42,5 +42,4 @@ class UpDataset(Dataset):
         target = self.pats[idx]
         image = resize_image_torch(image, self.train_size)
         target = resize_image_torch(target, self.target_size)
-        # print('Image size: ', image.size(), 'Target size: ', target.size())
         return image, target
