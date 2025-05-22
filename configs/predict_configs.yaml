@@ -1,7 +1,7 @@
 metadata:
   experiment_name: test
-  run_name: 11
-  description: test optimized model (changed upscale 2x2 instead of 1x4)
+  run_name: 009
+  description: test optimized model (conv layers after upscaling in decoder)
   author: Nikolai Orlov
 model:
   _target_: src.models.unet_skip_v0_metamodel.UNetMetaModel
@@ -21,7 +21,7 @@ train_params:
   early_stopping_epochs: 200
   reduce_lr_factor: 0.5
   reduce_lr_patience: 8
-  monitor_metric: val_ssim
+  monitor_metric: train_ssim
   monitor_metric_better: max
 data:
   train:
@@ -34,3 +34,12 @@ data:
     num_workers: 0
     pin_memory: true
     gauss_sigma: 15.0
+
+predict:
+  model:
+    file_path: 
+      - /workdir/data/experiments/test_009/model-072-0.734109.pth
+  data:
+    - /workdir/data/poly-Ni_scan6_15kV_100pA_WD8-1_bin4_sat0270_exp140ms_gain00_gut00_step3500nm_2346points_.up2
+  save_path: 
+    - /workdir/data/experiments/test_009/predictions
