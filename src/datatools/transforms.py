@@ -25,7 +25,6 @@ def resize_image_torch(image, target_size):
         image: input image
         target_size: Tuple of (height, width) for the target size
     """
-    # if isinstance(image, np.ndarray):
     image = image.astype(np.uint8)
     image = Image.fromarray(image)
     transform = transforms.Compose([
