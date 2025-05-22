@@ -4,7 +4,7 @@ import struct
 import numpy as np
 from torch.utils.data.dataset import Dataset
 
-from src.datatools.transforms import resize_image_torch, to_tensor
+from src.datatools.transforms import resize_image_torch
 
 
 class UpDataset(Dataset):
