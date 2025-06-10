@@ -1,13 +1,13 @@
 metadata:
   experiment_name: test
-  run_name: 009
+  run_name: 018
   description: test optimized model (conv layers after upscaling in decoder)
   author: Nikolai Orlov
 model:
   _target_: src.models.unet_skip_v0_metamodel.UNetMetaModel
   params:
     pretrain: null
-    device: cpu
+    device: cuda
     nn_module:
       n_channels:
       - 1
@@ -38,8 +38,8 @@ data:
 predict:
   model:
     file_path: 
-      - /workdir/data/experiments/test_009/model-072-0.734109.pth
+      - /workdir/data/experiments/test_19/model-097-0.588584.pth
   data:
     - /workdir/data/poly-Ni_scan6_15kV_100pA_WD8-1_bin4_sat0270_exp140ms_gain00_gut00_step3500nm_2346points_.up2
   save_path: 
-    - /workdir/data/experiments/test_009/predictions
+    - /workdir/data/experiments/test_19/predictions

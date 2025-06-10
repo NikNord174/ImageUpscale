@@ -1,13 +1,13 @@
 metadata:
   experiment_name: test
-  run_name: 11
-  description: test optimized model (changed upscale 2x2 instead of 1x4)
+  run_name: 19
+  description: add weights initialization
   author: Nikolai Orlov
 model:
   _target_: src.models.unet_skip_v0_metamodel.UNetMetaModel
   params:
     pretrain: null
-    device: cpu
+    device: cuda
     nn_module:
       n_channels:
       - 1
@@ -19,18 +19,24 @@ train_params:
   max_epochs: 100
   batch_size: 100
   early_stopping_epochs: 200
-  reduce_lr_factor: 0.5
-  reduce_lr_patience: 8
+  reduce_lr_factor: 0.25
+  reduce_lr_patience: 4
   monitor_metric: val_ssim
   monitor_metric_better: max
 data:
   train:
   - /workdir/data/poly-Ni_scan6_15kV_100pA_WD8-1_bin1_sat0100_exp140ms_gain00_gut00_step3500nm_2303points_.up2
+  - /workdir/data/poly-Ni_scan1_10kV_100pA_WD8-1_bin1_sat0060_exp140ms_gain00_gut00_step3500nm_2650points_.up2
+  - /workdir/data/poly-Ni_scan1_15kV_100pA_WD8-1_bin1_sat0060_exp140ms_gain00_gut00_step3500nm_2650points_.up2
+  - /workdir/data/poly-Ni_scan2_10kV_100pA_WD8-1_bin1_sat0070_exp140ms_gain00_gut00_step3500nm_2440points_.up2
+  - /workdir/data/poly-Ni_scan3_15kV_100pA_WD8-1_bin1_sat0040_exp70ms_gain00_gut00_step3500nm_2318points_.up2
+  - /workdir/data/poly-Ni_scan4_15kV_100pA_WD8-1_bin1_sat0040_ex70ms_gain00_gut00_step3500nm_3245points_.up2
+  - /workdir/data/poly-Ni_scan5_15kV_100pA_WD8-1_bin1_sat0100_exp140ms_gain00_gut00_step3500nm_2196points_.up2
   valid:
   - /workdir/data/poly-Ni_scan6_15kV_100pA_WD8-1_bin1_sat0100_exp140ms_gain00_gut00_step3500nm_2303points_.up2
   data_params:
     img_size: ${tuple:128,128}
-    batch_size: 9
+    batch_size: 400
     num_workers: 0
     pin_memory: true
     gauss_sigma: 15.0
