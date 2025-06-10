@@ -3,7 +3,7 @@ import torch.nn as nn
 from argus import Model
 from argus.utils import deep_to, deep_detach
 
-from src.models.unet_skip_v1 import UNet
+from src.models.unet_skip_v2 import UNet
 
 
 class UNetMetaModel(Model):
