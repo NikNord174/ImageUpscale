@@ -61,6 +61,9 @@ class UNet(nn.Module):
         
         # Output layer
         self.outc = nn.Conv2d(layers[1], self.o_channels, kernel_size=5, padding=2)
+
+        # Initialize weights for better convergence
+        self._initialize_weights()
     
     def double_conv(self, in_channels, out_channels, mid_channels=None):
         if not mid_channels:
@@ -79,6 +82,16 @@ class UNet(nn.Module):
             nn.MaxPool2d(2),
             self.double_conv(in_channels, out_channels)
         )
+    
+    def _initialize_weights(self):
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d) or isinstance(m, nn.ConvTranspose2d):
+                nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0)
+            elif isinstance(m, nn.BatchNorm2d):
+                nn.init.constant_(m.weight, 1)
+                nn.init.constant_(m.bias, 0)
     
     def forward(self, x):
         # Encoder path
