@@ -22,22 +22,42 @@ class UNet(nn.Module):
         
         # Decoder path for 4x upscaling
         # Upsampling components
-        self.up_seq1 = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
-        self.up_seq2 = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
-        self.up_seq3 = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
-        self.up_seq4 = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
+        # self.up_seq1 = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
+        # self.up_seq2 = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
+        # self.up_seq3 = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
+        # self.up_seq4 = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
 
-        
-        
-        # Convolution components
+        self.up_seq1 = nn.ConvTranspose2d(layers[4], layers[4], kernel_size=4, stride=2, padding=1)
         self.conv0 = self.double_conv(layers[4], layers[3])
-        self.conv1 = self.double_conv(layers[4], layers[2])  # 64+64 inputs
+        self.conv1 = self.double_conv(layers[4], layers[2])  # 128+128 inputs
+        
+        self.up_seq2 = nn.ConvTranspose2d(layers[2], layers[2], kernel_size=4, stride=2, padding=1)
         self.conv2_0 = self.double_conv(layers[2], layers[2])
-        self.conv2 = self.double_conv(layers[3], layers[1])   # 32+32 inputs
+        self.conv2 = self.double_conv(layers[3], layers[1])  # 64+64 inputs
+        
+        # For 4x upscaling, use two sequential Conv2DTranspose layers
+        self.up_seq3 = nn.ConvTranspose2d(layers[1], layers[1], kernel_size=4, stride=2, padding=1)
         self.conv3_0 = self.double_conv(layers[1], layers[1])
-        self.conv3 = self.double_conv(layers[2], layers[0])    # 16+16 inputs
+        self.up_seq3_2 = nn.ConvTranspose2d(layers[1], layers[1], kernel_size=4, stride=2, padding=1)
+        self.conv3_0_2 = self.double_conv(layers[1], layers[1])
+        self.conv3 = self.double_conv(layers[2], layers[0])  # 32+32 inputs
+        
+        # Final upscaling layers (for 4x total)
+        self.up_seq4 = nn.ConvTranspose2d(layers[0], layers[0], kernel_size=4, stride=2, padding=1)
         self.conv4_0 = self.double_conv(layers[0], layers[0])
-        self.conv4 = self.double_conv(layers[1], layers[1])   # 8+8 inputs
+        self.up_seq4_2 = nn.ConvTranspose2d(layers[0], layers[0], kernel_size=4, stride=2, padding=1)
+        self.conv4_0_2 = self.double_conv(layers[0], layers[0])
+        self.conv4 = self.double_conv(layers[1], layers[1])  # 16+16 inputs
+        
+        # # Convolution components
+        # self.conv0 = self.double_conv(layers[4], layers[3])
+        # self.conv1 = self.double_conv(layers[4], layers[2])  # 64+64 inputs
+        # self.conv2_0 = self.double_conv(layers[2], layers[2])
+        # self.conv2 = self.double_conv(layers[3], layers[1])   # 32+32 inputs
+        # self.conv3_0 = self.double_conv(layers[1], layers[1])
+        # self.conv3 = self.double_conv(layers[2], layers[0])    # 16+16 inputs
+        # self.conv4_0 = self.double_conv(layers[0], layers[0])
+        # self.conv4 = self.double_conv(layers[1], layers[1])   # 8+8 inputs
         
         # Output layer
         self.outc = nn.Conv2d(layers[1], self.o_channels, kernel_size=5, padding=2)
