@@ -13,7 +13,7 @@ if __name__ == "__main__":
     # print('Model: ', modelV1)
 
     # Create a test input tensor (batch_size, channels, height, width)
-    x = torch.randn(1, 1, 32, 32).to(device)
+    x = torch.randn(1, 1, 128, 128).to(device)
     print(f"Input shape: {x.shape}")
     # print('Input device: ', x.get_device())
     # print('Model device: ', next(model.parameters()).get_device())
