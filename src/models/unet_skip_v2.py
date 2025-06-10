@@ -9,13 +9,16 @@ class UNet(nn.Module):
         self.n_channels = n_channels if isinstance(n_channels, int) else n_channels[0]
         self.o_channels = o_channels if isinstance(o_channels, int) else o_channels[0]
         self.bilinear = bilinear
+
+        # layers = [8, 16, 32, 64, 128]
+        layers = [16, 32, 64, 128, 256]
         
         # Encoder path
-        self.inc = self.double_conv(self.n_channels, 8)
-        self.down1 = self.down(8, 16)
-        self.down2 = self.down(16, 32)
-        self.down3 = self.down(32, 64)
-        self.down4 = self.down(64, 128)
+        self.inc = self.double_conv(self.n_channels, layers[0])
+        self.down1 = self.down(layers[0], layers[1])
+        self.down2 = self.down(layers[1], layers[2])
+        self.down3 = self.down(layers[2], layers[3])
+        self.down4 = self.down(layers[3], layers[4])
         
         # Decoder path for 4x upscaling
         # Upsampling components
@@ -23,19 +26,21 @@ class UNet(nn.Module):
         self.up_seq2 = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
         self.up_seq3 = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
         self.up_seq4 = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
+
+        
         
         # Convolution components
-        self.conv0 = self.double_conv(128, 64)
-        self.conv1 = self.double_conv(128, 32)  # 64+64 inputs
-        self.conv2_0 = self.double_conv(32, 32)
-        self.conv2 = self.double_conv(64, 16)   # 32+32 inputs
-        self.conv3_0 = self.double_conv(16, 16)
-        self.conv3 = self.double_conv(32, 8)    # 16+16 inputs
-        self.conv4_0 = self.double_conv(8, 8)
-        self.conv4 = self.double_conv(16, 16)   # 8+8 inputs
+        self.conv0 = self.double_conv(layers[4], layers[3])
+        self.conv1 = self.double_conv(layers[4], layers[2])  # 64+64 inputs
+        self.conv2_0 = self.double_conv(layers[2], layers[2])
+        self.conv2 = self.double_conv(layers[3], layers[1])   # 32+32 inputs
+        self.conv3_0 = self.double_conv(layers[1], layers[1])
+        self.conv3 = self.double_conv(layers[2], layers[0])    # 16+16 inputs
+        self.conv4_0 = self.double_conv(layers[0], layers[0])
+        self.conv4 = self.double_conv(layers[1], layers[1])   # 8+8 inputs
         
         # Output layer
-        self.outc = nn.Conv2d(16, self.o_channels, kernel_size=5, padding=2)
+        self.outc = nn.Conv2d(layers[1], self.o_channels, kernel_size=5, padding=2)
     
     def double_conv(self, in_channels, out_channels, mid_channels=None):
         if not mid_channels:
