@@ -37,7 +37,6 @@ class UpDataset(Dataset):
 
     def __getitem__(self, idx: int):
         # Add a new axis for the channel
-        # target = to_tensor(self.pats[idx])
         image = self.pats[idx]
         target = self.pats[idx]
         image = resize_image_torch(image, self.train_size)
