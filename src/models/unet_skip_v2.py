@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+
 class UNet(nn.Module):
     def __init__(self, n_channels=1, o_channels=1, bilinear=True):
         super(UNet, self).__init__()
@@ -10,15 +11,21 @@ class UNet(nn.Module):
         self.o_channels = o_channels if isinstance(o_channels, int) else o_channels[0]
         self.bilinear = bilinear
 
-        # layers = [8, 16, 32, 64, 128]
         layers = [16, 32, 64, 128, 256]
-        
+
         # Encoder path
         self.inc = self.double_conv(self.n_channels, layers[0])
-        self.down1 = self.down(layers[0], layers[1])
-        self.down2 = self.down(layers[1], layers[2])
-        self.down3 = self.down(layers[2], layers[3])
-        self.down4 = self.down(layers[3], layers[4])
+        down_results = []
+        for n_layer in range(len(layers)):
+            down_results.append(self.down(layers[n_layer]), layers[n_layer+1])
+
+        # -----//------
+        # old version substituted by for cycle above
+        # self.down1 = self.down(layers[0], layers[1])
+        # self.down2 = self.down(layers[1], layers[2])
+        # self.down3 = self.down(layers[2], layers[3])
+        # self.down4 = self.down(layers[3], layers[4])
+        # -----//------
         
         # Decoder path for 4x upscaling
         # Upsampling components
@@ -64,7 +71,8 @@ class UNet(nn.Module):
 
         # Initialize weights for better convergence
         self._initialize_weights()
-    
+
+    # Simple block of double Conv processes at one level of U-network
     def double_conv(self, in_channels, out_channels, mid_channels=None):
         if not mid_channels:
             mid_channels = out_channels
@@ -76,13 +84,13 @@ class UNet(nn.Module):
             nn.BatchNorm2d(out_channels),
             nn.LeakyReLU(inplace=True)
         )
-    
+
     def down(self, in_channels, out_channels):
         return nn.Sequential(
             nn.MaxPool2d(2),
             self.double_conv(in_channels, out_channels)
         )
-    
+
     def _initialize_weights(self):
         for m in self.modules():
             if isinstance(m, nn.Conv2d) or isinstance(m, nn.ConvTranspose2d):
