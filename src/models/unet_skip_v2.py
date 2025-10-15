@@ -42,7 +42,8 @@ class Down(nn.Module):
 
 
 class Up(nn.Module):
-    """Upscaling block using ConvTranspose2d + skip connection + double_conv."""
+    """Upscaling block using ConvTranspose2d
+    + skip connection + double_conv."""
     def __init__(self, in_channels, skip_channels):
         super().__init__()
         # in_ch_up = in_channels // 2
@@ -86,12 +87,13 @@ class UNet(nn.Module):
             out_channels, int) else out_channels[0]
         self.sr_upscale = sr_upscale
 
-        ### Revise this part. Layers must be defined in config file. ###
+        # Revise this part. Layers must be defined in config file.
         self.layers = [16, 32, 64, 128, 256]
 
         # Encoder path
         self.inc = double_conv(self.in_channels, self.layers[0])
-        self.downs = nn.ModuleList()  # creates a properly indexed by torch list of Modules
+        # creates a properly indexed by torch list of Modules
+        self.downs = nn.ModuleList()
         for in_layer, out_layer in zip(self.layers[:-1], self.layers[1:]):
             self.downs.append(Down(in_layer, out_layer))
 
