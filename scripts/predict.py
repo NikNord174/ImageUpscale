@@ -1,17 +1,13 @@
 from omegaconf import OmegaConf, DictConfig
 import hydra
 import numpy as np
-import torch, torchvision
+import torch
 from argus import load_model
-from tqdm import tqdm
 import os
 import matplotlib.pyplot as plt
 
 from src.datatools.utils import resolve_tuple
-from src.models.unet_skip_v0_metamodel import UNetMetaModel
-from src.datatools.up_dataset import UpDataset
 from src.datatools.read_write_up import ReadWriteUp
-from src.datatools.transforms import resize_image_torch, to_tensor
 
 
 CONFIG_PATH = '/workdir/configs/predict_configs.yaml'
@@ -31,17 +27,16 @@ def predict(cfg: DictConfig) -> None:
         dtype=np.uint16)
 
     patterns = patterns[0].astype(np.float64)
-    len = patterns.shape[0]
     patterns = torch.from_numpy(patterns).to(DEVICE)
 
     # Load the model
     model = hydra.utils.instantiate(cfg.model)
     if cfg.predict.model.file_path is None:
-        raise ValueError("Model file path is not provided in the configuration.")
+        raise ValueError("Model filepath isn't provided in the configuration.")
     model = load_model(
         cfg.predict.model.file_path[0], device=DEVICE,
         optimizer=None)
-    
+
     patterns = patterns[np.newaxis, ...].to(DEVICE)
     pred = model.predict(patterns.float())
 
