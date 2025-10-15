@@ -11,13 +11,18 @@ class UNet(nn.Module):
         self.o_channels = o_channels if isinstance(o_channels, int) else o_channels[0]
         self.bilinear = bilinear
 
+        ### Revise this part. Layers must be defined in config file. ###
         layers = [16, 32, 64, 128, 256]
 
         # Encoder path
-        self.inc = self.double_conv(self.n_channels, layers[0])
-        down_results = []
+        self.down_layers = []
+        # -----//------
+        # not necessary anymore
+        # self.inc = self.double_conv(self.n_channels, layers[0])
+        # -----//------
+        self.down_layers.append(self.double_conv(self.n_channels, layers[0]))
         for n_layer in range(len(layers)):
-            down_results.append(self.down(layers[n_layer]), layers[n_layer+1])
+            self.down_layers.append(self.down(layers[n_layer]), layers[n_layer+1])
 
         # -----//------
         # old version substituted by for cycle above
@@ -25,6 +30,7 @@ class UNet(nn.Module):
         # self.down2 = self.down(layers[1], layers[2])
         # self.down3 = self.down(layers[2], layers[3])
         # self.down4 = self.down(layers[3], layers[4])
+        # old version substituted by for cycle above
         # -----//------
         
         # Decoder path for 4x upscaling
@@ -85,6 +91,7 @@ class UNet(nn.Module):
             nn.LeakyReLU(inplace=True)
         )
 
+    # MaxPool operation followed by 2 Conv steps (in double_conv form)
     def down(self, in_channels, out_channels):
         return nn.Sequential(
             nn.MaxPool2d(2),
@@ -102,12 +109,23 @@ class UNet(nn.Module):
                 nn.init.constant_(m.bias, 0)
     
     def forward(self, x):
-        # Encoder path
-        x1 = self.inc(x)      # 8×H×W
-        x2 = self.down1(x1)   # 16×H/2×W/2
-        x3 = self.down2(x2)   # 32×H/4×W/4
-        x4 = self.down3(x3)   # 64×H/8×W/8
-        x5 = self.down4(x4)   # 128×H/16×W/16
+        # Encoder in action
+        x_input = x.clone()  # keep initial tensor untouched
+        decoder_results = []  # stores tensors from every layer of encoder for further use in connections
+        # down_layers: inc -> down1 -> down2 -> down3 -> ...
+        # 8×H×W -> 16×H/2×W/2 -> 32×H/4×W/4 -> 64×H/8×W/8 -> 128×H/16×W/16
+        for element in self.down_layers:
+            x_input = element(x_input)  # rewrite x_input to use it in the next layer
+            decoder_results.append(x_input)
+
+        # -----//------
+        # old version substituted by for cycle
+        # x1 = self.inc(x)      # 8×H×W
+        # x2 = self.down1(x1)   # 16×H/2×W/2
+        # x3 = self.down2(x2)   # 32×H/4×W/4
+        # x4 = self.down3(x3)   # 64×H/8×W/8
+        # x5 = self.down4(x4)   # 128×H/16×W/16
+        # -----//------
         
         # Decoder path with 4x upscaling
         # First upscale (1x -> 2x)
