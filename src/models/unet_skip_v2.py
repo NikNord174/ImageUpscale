@@ -51,7 +51,7 @@ class Up(nn.Module):
             in_channels, skip_channels, kernel_size=2, stride=2)
         self.conv = double_conv(skip_channels * 2, skip_channels)
 
-    def forward(self, x: torch.Tensor, skip: torch.Tensor):
+    def forward(self, x: torch.Tensor, skip: torch.Tensor) -> torch.Tensor:
         x = self.up(x)
 
         # Pad if needed (handles odd dimensions)
@@ -73,7 +73,7 @@ class PixelShuffleHead(nn.Module):
             in_channels, out_channels*(upscale ** 2), kernel_size=3, padding=1)
         self.ps = nn.PixelShuffle(upscale)
 
-    def forward(self, x: torch.Tensor):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.ps(self.conv(x))
 
 
