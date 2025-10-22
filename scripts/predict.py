@@ -19,6 +19,33 @@ CONFIG_PATH = '/workdir/configs/predict_configs.yaml'
 OmegaConf.register_new_resolver('tuple', resolve_tuple)
 
 
+def substract_background(data: np.ndarray,) -> np.ndarray:
+        """Substracts background from patterns.
+
+        Args:
+            data (np.ndarray): Array of patterns with a shape (N, 1, m, m).
+
+        Returns:
+            np.ndarray: Patterns with meaned cross and shape (N, 1, m, m).
+        """
+        dtype = np.uint16
+        # assert len(data.shape) == 4, "Data should be 4D array"
+        background = np.mean(data, axis=0).astype(np.float32)
+
+        subtracted_pats = data.astype(np.float32) - background
+        print('pats shape: ', subtracted_pats.shape)
+        original_mean = np.mean(data, axis=(1, 2, 3), keepdims=True)\
+            .astype(np.float32)
+        subtracted_mean = np.mean(subtracted_pats, axis=(1, 2, 3),
+                                  keepdims=True)
+
+        adjusted_pats = subtracted_pats + (original_mean - subtracted_mean)
+        adjusted_pats = np.clip(adjusted_pats, 0, 65535)
+        adjusted_pats = adjusted_pats.astype(dtype)
+
+        return adjusted_pats
+
+
 @hydra.main(
         version_base=None, config_path=os.path.dirname(CONFIG_PATH),
         config_name=os.path.splitext(os.path.basename(CONFIG_PATH))[0])
@@ -26,10 +53,11 @@ def predict(cfg: DictConfig) -> None:
     """Upscale patterns using a trained model."""
     # Upload the dataset to predict
     DEVICE = cfg.model.params.device
-    patterns = ReadWriteUp().read_up_file(
+    raw_patterns = ReadWriteUp().read_up_file(
         file_path=cfg.predict.data[0],
         dtype=np.uint16)
 
+    patterns = substract_background(raw_patterns)
     patterns = patterns[0][0]
     im_size = cfg.data.data_params.img_size
     patterns_down = resize_image_torch(patterns, im_size)
