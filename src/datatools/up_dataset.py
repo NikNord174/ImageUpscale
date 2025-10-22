@@ -16,8 +16,36 @@ class UpDataset(Dataset):
         assert os.path.exists(file_path)
         self.train_size = (img_size[0] // 4, img_size[1] // 4)
         self.target_size = img_size
-        self.pats = self._read_up_file(file_path)
+        self.raw_pats = self._read_up_file(file_path)
+        self.pats = self.substract_background(self.raw_pats)
         self.transform = transform
+
+    @staticmethod
+    def substract_background(data: np.ndarray,) -> np.ndarray:
+        """Substracts background from patterns.
+
+        Args:
+            data (np.ndarray): Array of patterns with a shape (N, 1, m, m).
+
+        Returns:
+            np.ndarray: Patterns with meaned cross and shape (N, 1, m, m).
+        """
+        dtype = np.uint16
+        background = np.mean(data, axis=0).astype(np.float32)
+
+        subtracted_pats = data.astype(np.float32) - background
+
+        original_mean = np.mean(data, axis=(1, 2,), keepdims=True)\
+            .astype(np.float32)
+        subtracted_mean = np.mean(subtracted_pats, axis=(1, 2,),
+                                  keepdims=True)
+
+        adjusted_pats = subtracted_pats + (original_mean - subtracted_mean)
+        adjusted_pats = np.clip(adjusted_pats, 0, 65535)
+
+        adjusted_pats = adjusted_pats.astype(dtype)
+
+        return adjusted_pats
 
     @staticmethod
     def _read_up_file(
