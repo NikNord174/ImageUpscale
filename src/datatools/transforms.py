@@ -22,8 +22,8 @@ def resize_image_torch(image: np.array, target_size: tuple):
     Resize an image using PyTorch transforms
 
     Args:
-        image (np.array): input image (height, width)
-        target_size (tuple): Tuple of (height, width) for the target size
+        image (np.array): input image (height, width).
+        target_size (tuple): Tuple of (height, width) for the target size.
     """
     image = image.astype(np.float64)
     image = Image.fromarray(image)
