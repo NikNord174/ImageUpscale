@@ -1,25 +1,23 @@
 metadata:
   experiment_name: test
-  date: 20-10-2025
-  run_name: 27-mac
-  description: more data (Ru) and model from 24-mac
+  date: 22-10-2025
+  run_name: 33-a-amolf-beast
+  description: model from 32.
   author: Nikolai Orlov
 model:
   _target_: src.models.unet_skip_v2_metamodel.UNetMetaModel
   params:
-    pretrain: /workdir/data/experiments/test_26-mac/model-195-0.884076.pth
-    device: cpu
+    pretrain: /workdir/data/experiments/test_32-mac/model-327-0.748441.pth
+    device: cuda:0
     nn_module:
       in_channels:
       - 1
       out_channels:
       - 1
-      # sr_upscale:
-      # - 4
     optimizer:
       lr: 0.5
 train_params:
-  max_epochs: 200
+  max_epochs: 1000
   batch_size: 100
   early_stopping_epochs: 200
   reduce_lr_factor: 0.25
@@ -28,25 +26,24 @@ train_params:
   monitor_metric_better: max
 data:
   train:
-  - /workdir/data/SP_poly-Ni_scan6_15kV_100pA_WD8-1_bin1_sat0100_exp140ms_gain00_gut00_step3500nm_2303points_.up2
-  - /workdir/data/SP_poly-Ni_scan2_10kV_100pA_WD8-1_bin1_sat0070_exp140ms_gain00_gut00_step3500nm_2440points_.up2
-  - /workdir/data/poly-Ni_scan4_15kV_100pA_WD8-1_bin1_sat0150_ex280ms_gain00_gut00_step3500nm_2597points_.up2
-  - /workdir/data/SP_Ru_8_2_2_scan3_7kV_100pA-WD_11-3_mag_6500_0050sat_0ms_bin4_gut0_gain0-20_25nm-step_79625points_.up2
-  # - /workdir/data/SP_poly-Ni_scan5_15kV_100pA_WD8-1_bin1_sat0100_exp140ms_gain00_gut00_step3500nm_2196points_.up2
-  # - /workdir/data/poly-Ni_scan6_15kV_100pA_WD8-1_bin1_sat0100_exp140ms_gain00_gut00_step3500nm_2303points_.up2
-  # - /workdir/data/poly-Ni_scan1_10kV_100pA_WD8-1_bin1_sat0060_exp140ms_gain00_gut00_step3500nm_2650points_.up2
-  # - /workdir/data/poly-Ni_scan1_15kV_100pA_WD8-1_bin1_sat0060_exp140ms_gain00_gut00_step3500nm_2650points_.up2
-  # - /workdir/data/poly-Ni_scan2_10kV_100pA_WD8-1_bin1_sat0070_exp140ms_gain00_gut00_step3500nm_2440points_.up2
-  # - /workdir/data/poly-Ni_scan3_15kV_100pA_WD8-1_bin1_sat0040_exp70ms_gain00_gut00_step3500nm_2318points_.up2
-  # - /workdir/data/poly-Ni_scan4_15kV_100pA_WD8-1_bin1_sat0040_ex70ms_gain00_gut00_step3500nm_3245points_.up2
-  # - /workdir/data/poly-Ni_scan5_15kV_100pA_WD8-1_bin1_sat0100_exp140ms_gain00_gut00_step3500nm_2196points_.up2
+  # - /workdir/data/samples/poly-ni/07-11-2023/poly-Ni_scan4_15kV_100pA_WD8-1_bin1_sat0150_ex280ms_gain00_gut00_step3500nm_2597points_.up2  # initial training
+  - /workdir/data/samples/poly-ni/02-11-2023/poly-Ni_scan1_15kV_100pA_WD8-1_bin1_sat0110_exp140ms_gain00_gut00_step3500nm_4087points_.up2
+  # - /workdir/data/samples/poly-ni/02-11-2023/poly-Ni_scan2_15kV_100pA_WD8-1_bin1_sat0110_exp140ms_gain00_gut00_step3500nm_2684points_.up2
+  # - /workdir/data/samples/poly-ni/02-11-2023/poly-Ni_scan3_15kV_100pA_WD8-1_bin1_sat0110_exp140ms_gain00_gut00_step3500nm_2209points_scan1_.up2
+  # - /workdir/data/samples/poly-ni/02-11-2023/poly-Ni_scan4_15kV_100pA_WD8-1_bin1_sat0120_exp140ms_gain00_gut00_step3500nm_2205points_scan1_.up2
+  # - /workdir/data/samples/poly-ni/02-11-2023/poly-Ni_scan5_15kV_100pA_WD8-1_bin1_sat0100_exp140ms_gain00_gut00_step3500nm_2196points_.up2
+  # - /workdir/data/samples/poly-ni/02-11-2023/poly-Ni_scan5_15kV_100pA_WD8-1_bin2_sat0200_exp140ms_gain00_gut00_step3500nm_2196points_.up2
+  # - /workdir/data/samples/poly-ni/02-11-2023/poly-Ni_scan5_15kV_100pA_WD8-1_bin4_sat0270_exp140ms_gain00_gut00_step3500nm_2196points_.up2
+  # - /workdir/data/samples/poly-ni/02-11-2023/poly-Ni_scan6_15kV_100pA_WD8-1_bin1_sat0100_exp140ms_gain00_gut00_step3500nm_2303points_.up2
+  # - /workdir/data/samples/poly-ni/02-11-2023/poly-Ni_scan6_15kV_100pA_WD8-1_bin2_sat0220_exp140ms_gain00_gut00_step3500nm_2346points_.up2
+  # - /workdir/data/samples/poly-ni/02-11-2023/poly-Ni_scan6_15kV_100pA_WD8-1_bin4_sat0270_exp140ms_gain00_gut00_step3500nm_2346points_.up2
+
   valid:
-  # - /workdir/data/poly-Ni_scan6_15kV_100pA_WD8-1_bin1_sat0100_exp140ms_gain00_gut00_step3500nm_2303points_.up2
-  - /workdir/data/SP_poly-Ni_scan5_15kV_100pA_WD8-1_bin1_sat0100_exp140ms_gain00_gut00_step3500nm_2196points_.up2
-  - /workdir/data/SP_Ru_8_2_2_scan10_7kV_25pA-WD_11-3_mag_12000_0080sat_50ms_bin4_gut0_gain0-20_30nm-step_5320points_.up2
+  # - /workdir/data/samples/poly-ni/07-11-2023/poly-Ni_scan4_15kV_100pA_WD8-1_bin1_sat0150_ex280ms_gain00_gut00_step3500nm_2597points_.up2  # initial training
+  - /workdir/data/samples/poly-ni/07-11-2023/poly-Ni_scan3_15kV_100pA_WD8-1_bin1_sat0150_ex280ms_gain00_gut00_step3500nm_2318points_.up2  # validation dataset
   data_params:
     img_size: ${tuple:64,64}
-    batch_size: 400
+    batch_size: 200
     num_workers: 0
     pin_memory: true
     gauss_sigma: 15.0
