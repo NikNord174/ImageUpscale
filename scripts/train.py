@@ -44,7 +44,10 @@ def train(cfg: DictConfig) -> None:
         model.set_lr(cfg.model.params.optimizer.lr)
         logger.info('Loaded pretrain %s', pretrain_path)
     else:
-        model = hydra.utils.instantiate(cfg.model)
+        # _convert_ makes hydra pass plain containers, not DictConfig:
+        # argus stores the params in every checkpoint, and torch.load
+        # refuses non-primitive types under its weights_only default.
+        model = hydra.utils.instantiate(cfg.model, _convert_='all')
 
     monitor = cfg.train_params.monitor_metric
     better = cfg.train_params.monitor_metric_better
