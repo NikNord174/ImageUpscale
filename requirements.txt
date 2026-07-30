@@ -1,22 +1,10 @@
-pytorch-argus==1.0.0
-numpy==1.23.5
-scipy==1.11.3
-timm==0.9.7
-opencv-python-headless==4.8.1.78
-scikit-learn==1.3.1
-scikit-image==0.22.0
-matplotlib==3.8.0
-notebook==7.0.4
-hydra-core==1.3.2
-optuna==2.10.1
-hydra-optuna-sweeper==1.2.0
-kornia==0.7.0
-pandas==2.2.2
-git+https://github.com/umang-singhal/pydom.git@2554af8d
-# Dev tools
-tqdm==4.65.0
-mypy==1.5.1
-pytest==7.4.2
+torch==2.13.0
+torchvision==0.28.0
+numpy==2.4.6
+pytorch-argus==1.1.0
+hydra-core==1.3.4
+omegaconf==2.3.1
 
-# git features
-pre-commit==4.0.1
+# Dev tools
+pytest==9.1.1
+flake8==7.3.0
