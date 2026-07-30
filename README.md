@@ -10,6 +10,10 @@ makes the scan much faster, at the cost of pattern detail. This project
 trains a U-Net to restore 4x-downsampled patterns back to full
 resolution, so a scan could be acquired fast and upscaled afterwards.
 
+This is a demo version of the project: a compact, self-contained slice
+of a larger body of work, sized so that everything here — training,
+evaluation, tests — reproduces on a single laptop.
+
 ![Before and after](docs/results.png)
 
 *Held-out scan, never seen in training. The patterns are private lab
@@ -78,6 +82,14 @@ connection the network *loses* to bicubic on every pattern, and the
 SSIM term adds 1.7 dB over the MSE-only loss while visibly restoring
 structure — the detector seam and its bright pixels — that MSE alone
 smooths away.
+
+**Training setup.** Apple-silicon laptop (`mps` device), no discrete
+GPU: 25 epochs over 4,512 patterns at batch size 32 take a bit under
+two hours, about 4.5 minutes per epoch including the full validation
+pass. AdamW at lr 1e-3, halved after 8 epochs without improvement;
+early stopping at 15; the best checkpoint by held-out SSIM is kept
+(epoch 24 in this run). The same command finishes in minutes on a
+CUDA machine.
 
 ## Run it
 
