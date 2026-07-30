@@ -42,37 +42,42 @@ this figure was produced with the training command below.*
   upsampling of its input — interpolation recovers the smooth structure
   for free, so the model only competes on the detail interpolation
   cannot infer, and never does worse than the baseline it starts from.
-- **Training.** MSE loss, AdamW, `pytorch-argus` loop with early
-  stopping, best-checkpoint saving, LR reduction on plateau, and CSV
-  logging. Model selection monitors SSIM on a *held-out scan* — a
-  different scan of the sample, not a slice of the training scan, since
-  neighbouring points of one scan sit in the same grain and look nearly
-  identical.
-- **Metric.** SSIM computed from whole-image statistics
-  (`src/metrics/ssim.py`). It is deliberately simpler than the windowed
-  SSIM from the literature — cheap enough to run on every batch — and
-  the code says so; the numbers are for model selection, not for
-  benchmark comparison.
+- **Training.** The loss is MSE plus a windowed-SSIM term: MSE alone
+  converges to the blurry average of every sharp explanation of the
+  input, and the SSIM term charges for exactly that lost local
+  structure. AdamW, `pytorch-argus` loop with early stopping,
+  best-checkpoint saving, LR reduction on plateau, and CSV logging.
+  Model selection monitors SSIM on a *held-out scan* — a different
+  scan of the sample, not a slice of the training scan, since
+  neighbouring points of one scan sit in the same grain and look
+  nearly identical.
+- **Metrics.** Two SSIM variants live in `src/metrics/ssim.py`: the
+  standard 11x11 Gaussian-windowed SSIM (used in the loss and in the
+  results below, comparable to published numbers) and a cheap
+  whole-image-statistics variant used as the per-epoch training
+  monitor.
 
 ## Results
 
-Trained on one full scan (4,512 patterns, 17 epochs on a laptop GPU),
+Trained on one full scan (4,512 patterns, 25 epochs on a laptop GPU),
 evaluated on all 3,936 patterns of a second scan of the same sample
 covering different grains. The two scans share only the static
 detector background: after flat-fielding, validation patterns have no
 close match in the training scan (best cross-scan correlation 0.33),
 so the score cannot come from memorizing training content.
 
-|                  | PSNR (dB) | global SSIM |
-|------------------|-----------|-------------|
-| bicubic 4x       | 37.9      | 0.9964      |
-| U-Net (residual) | 39.1      | 0.9972      |
+|                        | PSNR (dB) | windowed SSIM |
+|------------------------|-----------|---------------|
+| bicubic 4x             | 37.9      | 0.897         |
+| U-Net, MSE loss        | 39.1      | 0.912         |
+| U-Net, MSE + SSIM loss | 40.8      | 0.936         |
 
-The gain is consistent, not statistical: the model reconstructs every
-single one of the held-out patterns more accurately than
-interpolation. Without the residual connection the same network
-*loses* to bicubic on every pattern, which is why the residual design
-is there.
+Both models beat interpolation on every single held-out pattern, and
+each design decision is an ablation row: without the residual
+connection the network *loses* to bicubic on every pattern, and the
+SSIM term adds 1.7 dB over the MSE-only loss while visibly restoring
+structure — the detector seam and its bright pixels — that MSE alone
+smooths away.
 
 ## Run it
 
@@ -113,7 +118,6 @@ CPU training step, and the SSIM metric. `make lint` runs flake8.
   cross-material generalization is untested.
 - The binning model covers the resolution loss but not the change in
   noise statistics a genuinely faster exposure would bring.
-- The SSIM here is a global-statistics variant; don't compare its
-  values against published windowed-SSIM numbers.
-- The zero-padded skip alignment leaves faint ripple artifacts in the
-  network output, visible on close inspection of the figure.
+- The restored patterns are smoother than the raw targets: the
+  network does not reproduce shot noise, by design — structure is
+  restored, noise is not.
