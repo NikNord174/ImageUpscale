@@ -1,35 +1,36 @@
+import pytest
 import torch
 
-from src.models.unet_skip_v0 import UNet
-from src.models.unet_skip_v1 import UNet as UNetV1
+from src.models.metamodel import UNetMetaModel
+from src.models.unet import UNet
 
 
-# Testing the model
-if __name__ == "__main__":
-    # Create a UNet model
-    device = 'cuda'
-    model = UNet(n_channels=[1], o_channels=[1]).to(device)
-    modelV1 = UNetV1(n_channels=[1], o_channels=[1]).to(device)
-    # print('Model: ', modelV1)
+@pytest.mark.parametrize('size', [16, 32])
+def test_output_is_4x_input(size):
+    model = UNet(n_channels=1, o_channels=1)
+    model.eval()
+    x = torch.randn(2, 1, size, size)
+    with torch.no_grad():
+        out = model(x)
+    assert out.shape == (2, 1, size * 4, size * 4)
 
-    # Create a test input tensor (batch_size, channels, height, width)
-    x = torch.randn(1, 1, 128, 128).to(device)
-    # print(f"Input shape: {x.shape}")
-    # print('Input device: ', x.get_device())
-    # print('Model device: ', next(model.parameters()).get_device())
-    # print('ModelV1 device: ', next(modelV1.parameters()).get_device())
 
-    # Pass the input through the model
-    output = modelV1(x)
-    print(f"Output shape: {output.shape}")
-    print('----')
-    output = model(x)
-    print(f"Output shape old: {output.shape}")
+def test_decoder_parameters_are_registered():
+    model = UNet()
+    names = [name for name, _ in model.named_parameters()]
+    assert any(name.startswith('conv1') for name in names)
+    assert any(name.startswith('conv4') for name in names)
+    assert any(name.startswith('outc') for name in names)
 
-    # # Print model statistics
-    # total_params = sum(p.numel() for p in modelV1.parameters())
-    # print(f"\nTotal parameters: {total_params:,}")
 
-    # trainable_params = sum(p.numel()
-    #                        for p in modelV1.parameters() if p.requires_grad)
-    # print(f"Trainable parameters: {trainable_params:,}")
+def test_metamodel_train_step_runs_on_cpu():
+    torch.manual_seed(0)
+    model = UNetMetaModel({
+        'nn_module': {'n_channels': 1, 'o_channels': 1},
+        'optimizer': {'lr': 1e-3},
+        'device': 'cpu',
+    })
+    batch = (torch.randn(2, 1, 16, 16), torch.randn(2, 1, 64, 64))
+    out = model.train_step(batch, None)
+    assert out['prediction'].shape == (2, 1, 64, 64)
+    assert isinstance(out['loss'], float)
