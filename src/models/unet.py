@@ -11,6 +11,11 @@ class UNet(nn.Module):
     doublings ahead of where it started: a 32x32 pattern goes in, a
     128x128 pattern comes out. Skip tensors are zero-padded up to the
     decoder resolution before concatenation.
+
+    The output is a residual on top of bicubic upsampling of the
+    input: interpolation already recovers the smooth structure, so the
+    network only has to learn the detail interpolation cannot infer,
+    and it can never do worse than the interpolation it starts from.
     """
 
     def __init__(self, n_channels=1, o_channels=1):
@@ -80,8 +85,10 @@ class UNet(nn.Module):
         x4 = self.down3(x3)
         x5 = self.down4(x4)
 
-        x = self.up_block(self.up_seq1(x5), x4, self.conv1)
-        x = self.up_block(self.up_seq2(x), x3, self.conv2)
-        x = self.up_block(self.up_seq3(x), x2, self.conv3)
-        x = self.up_block(self.up_seq4(x), x1, self.conv4)
-        return self.outc(x)
+        d = self.up_block(self.up_seq1(x5), x4, self.conv1)
+        d = self.up_block(self.up_seq2(d), x3, self.conv2)
+        d = self.up_block(self.up_seq3(d), x2, self.conv3)
+        d = self.up_block(self.up_seq4(d), x1, self.conv4)
+        upsampled = F.interpolate(
+            x, scale_factor=4, mode='bicubic', align_corners=False)
+        return upsampled + self.outc(d)
