@@ -1,38 +1,35 @@
 metadata:
-  experiment_name: test
-  run_name: 004
-  description: test learning process
-  author: Nikolai Orlov
+  experiment_name: unet
+  run_name: baseline
+  description: 4x upscaling, MSE loss, SSIM model selection
+
 model:
-  _target_: src.models.unet_skip_v0_metamodel.UNetMetaModel
+  _target_: src.models.metamodel.UNetMetaModel
   params:
     pretrain: null
     device: cuda
     nn_module:
-      n_channels:
-      - 1
-      o_channels:
-      - 1
+      n_channels: 1
+      o_channels: 1
     optimizer:
       lr: 0.001
+
 train_params:
+  save_root: data/experiments
   max_epochs: 100
-  batch_size: 100
-  early_stopping_epochs: 200
+  early_stopping_epochs: 15
   reduce_lr_factor: 0.5
   reduce_lr_patience: 8
-  monitor_metric: train_ssim
-  monitor_metric_better: min
+  monitor_metric: val_ssim
+  monitor_metric_better: max
+
 data:
   train:
-  - /workdir/data/poly-Ni_scan3_15kV_100pA_WD8-1_bin1_sat0070_ex140ms_gain00_gut00_step3500nm_2318points_.up2
-  
+    - data/scan_train.up2
   valid:
-  - /workdir/data/poly-Ni_scan3_15kV_100pA_WD8-1_bin1_sat0070_ex140ms_gain00_gut00_step3500nm_2318points_.up2
-  
+    - data/scan_valid.up2
   data_params:
     img_size: ${tuple:128,128}
-    batch_size: 9
+    batch_size: 32
     num_workers: 0
     pin_memory: true
-    gauss_sigma: 15.0
