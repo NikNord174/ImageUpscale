@@ -1,7 +1,7 @@
 import torch
 from argus.metrics import Metric
 
-from src.metrics.ssim import SSIM_v0
+from src.metrics.ssim import GlobalSSIM
 
 
 class SSIM(Metric):
@@ -10,23 +10,22 @@ class SSIM(Metric):
 
     def __init__(self):
         super().__init__()
-        self.n_samples: int = 0
-        self.value: float = 0.0
-        self.metric = SSIM_v0()
+        self.n_samples = 0
+        self.value = 0.0
+        self.metric = GlobalSSIM()
 
     def reset(self):
-        self.n_samples: int = 0
-        self.value: float = 0.0
+        self.n_samples = 0
+        self.value = 0.0
 
     def update(self, step_output: dict):
-        pred = step_output['prediction']
+        prediction = step_output['prediction']
         target = step_output['target']
-        mse = self.metric(target, pred)
-        self.n_samples += pred.shape[0]
-        self.value += torch.sum(mse)
+        ssim = self.metric(target, prediction)
+        self.n_samples += prediction.shape[0]
+        self.value += torch.sum(ssim).item()
 
     def compute(self):
-        if self.n_samples > 0:
-            return self.value / self.n_samples
-        else:
-            return float('inf')
+        if self.n_samples == 0:
+            return 0.0
+        return self.value / self.n_samples
