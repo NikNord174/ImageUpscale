@@ -1,15 +1,15 @@
 import torch
-import torch.nn as nn
 from argus import Model
 from argus.utils import deep_detach, deep_to
 
+from src.metrics.ssim import MSESSIMLoss
 from src.models.unet import UNet
 
 
 class UNetMetaModel(Model):
     nn_module = UNet
     optimizer = torch.optim.AdamW
-    loss = nn.MSELoss
+    loss = MSESSIMLoss
     device = 'cuda'
 
     def __init__(self, params: dict):
