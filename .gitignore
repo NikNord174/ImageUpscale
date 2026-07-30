@@ -1,6 +1,9 @@
 data/**
 !data/.gitkeep
 venv/**
+.venv/**
 experiments/**
 outputs/**
 __pycache__
+.pytest_cache/
+.DS_Store
