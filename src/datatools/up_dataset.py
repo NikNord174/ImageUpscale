@@ -2,17 +2,21 @@ import os
 import struct
 
 import numpy as np
+import torch.nn.functional as F
 from torch.utils.data.dataset import Dataset
 
 from src.datatools.transforms import resize_image_torch
+
+SCALE = 4  # detector binning factor
 
 
 class UpDataset(Dataset):
     """(low-res, high-res) training pairs from one .up2 pattern file.
 
     Every pattern in the scan yields a pair: the pattern resized to
-    img_size is the target, the same pattern resized to a quarter of
-    that is the input.
+    img_size is the target, and the target average-pooled 4x4 is the
+    input. Block averaging, not smooth resampling, because that is
+    what the detector does when it bins pixels for a fast scan.
     """
 
     def __init__(
@@ -21,7 +25,6 @@ class UpDataset(Dataset):
         super().__init__()
         assert os.path.exists(file_path), file_path
         self.target_size = tuple(int(s) for s in img_size)
-        self.train_size = tuple(s // 4 for s in self.target_size)
         self.pats = self._read_up_file(file_path)
 
     @staticmethod
@@ -49,6 +52,6 @@ class UpDataset(Dataset):
 
     def __getitem__(self, idx: int):
         pattern = np.asarray(self.pats[idx])
-        image = resize_image_torch(pattern, self.train_size)
         target = resize_image_torch(pattern, self.target_size)
+        image = F.avg_pool2d(target, SCALE)
         return image, target
