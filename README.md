@@ -11,14 +11,15 @@ trains a U-Net to restore 4x-downsampled patterns back to full
 resolution, so a scan could be acquired fast and upscaled afterwards.
 
 This is a demo version of the project: a compact, self-contained slice
-of a larger body of work, sized so that everything here — training,
-evaluation, tests — reproduces on a single laptop.
+of a larger body of work, sized so that everything here (training,
+evaluation, tests) reproduces on a single laptop.
 
 ![Before and after](docs/results.png)
 
 *Held-out scan, never seen in training. The patterns are private lab
 data (polycrystalline nickel), so the repo ships no data or weights;
-this figure was produced with the training command below.*
+the figure and the table below come from `scripts/evaluate.py` run
+against that scan.*
 
 ## How it works
 
@@ -29,30 +30,30 @@ this figure was produced with the training command below.*
   multi-gigabyte scan costs almost no RAM. Patterns are 16-bit and stay
   16-bit: values are scaled to float straight from uint16, never
   squeezed through a uint8 path.
-- **Pairs.** Training is self-supervised: each pattern resized to
+- **Training pairs.** Self-supervised: each pattern resized to
   128x128 is the target, and the target average-pooled 4x4 is the
   32x32 input. Block averaging rather than smooth resampling, because
-  binning is what the detector actually does when it trades resolution
-  for speed — and it makes the task honest: a smoothly downsampled
-  image keeps so much information that plain bicubic interpolation is
-  nearly optimal, while binned patterns leave the network something
-  real to recover. No labels needed, every scan is its own dataset.
+  binning is what the detector actually does when it trades
+  resolution for speed. It also keeps the task honest: a smoothly
+  downsampled image keeps so much information that bicubic
+  interpolation is nearly optimal, while binned patterns leave the
+  network something real to recover. No labels are needed; the pair
+  comes from the pattern itself.
 - **Model.** A U-Net (`src/models/unet.py`) with a twist: the encoder
   halves the resolution four times, but the first two decoder stages
   upsample 4x instead of 2x. The decoder ends up two doublings ahead of
   the encoder, which is where the 4x super-resolution comes from. Skip
   tensors are zero-padded up to the decoder resolution before
   concatenation. The network predicts a residual on top of bicubic
-  upsampling of its input — interpolation recovers the smooth structure
-  for free, so the model only competes on the detail interpolation
-  cannot infer, and never does worse than the baseline it starts from.
-- **Training.** The loss is MSE plus a windowed-SSIM term: MSE alone
-  converges to the blurry average of every sharp explanation of the
-  input, and the SSIM term charges for exactly that lost local
+  upsampling of its input: interpolation recovers the smooth structure
+  for free, and the model competes only on the remaining detail.
+- **Training.** The loss is MSE plus a windowed-SSIM term. MSE on its
+  own tends toward the blurry average of all plausible
+  reconstructions; the SSIM term penalizes the loss of local
   structure. AdamW, `pytorch-argus` loop with early stopping,
   best-checkpoint saving, LR reduction on plateau, and CSV logging.
-  Model selection monitors SSIM on a *held-out scan* — a different
-  scan of the sample, not a slice of the training scan, since
+  Model selection monitors SSIM on a *held-out scan*: a different
+  scan of the sample rather than a slice of the training one, since
   neighbouring points of one scan sit in the same grain and look
   nearly identical.
 - **Metrics.** Two SSIM variants live in `src/metrics/ssim.py`: the
@@ -72,7 +73,7 @@ so the score cannot come from memorizing training content.
 
 |                        | PSNR (dB) | windowed SSIM |
 |------------------------|-----------|---------------|
-| bicubic 4x             | 37.9      | 0.897         |
+| bicubic 4x             | 38.0      | 0.898         |
 | U-Net, MSE loss        | 39.1      | 0.912         |
 | U-Net, MSE + SSIM loss | 40.8      | 0.936         |
 
@@ -80,8 +81,10 @@ Both models beat interpolation on every single held-out pattern, and
 each design decision is an ablation row: without the residual
 connection the network *loses* to bicubic on every pattern, and the
 SSIM term adds 1.7 dB over the MSE-only loss while visibly restoring
-structure — the detector seam and its bright pixels — that MSE alone
-smooths away.
+structure (the detector seam and its bright pixels) that MSE alone
+smooths away. `python -m scripts.evaluate <scan.up2> --checkpoint
+<model.pth> --figure docs/results.png` reproduces the table and the
+figure for any checkpoint.
 
 **Training setup.** Apple-silicon laptop (`mps` device), no discrete
 GPU: 25 epochs over 4,512 patterns at batch size 32 take a bit under
@@ -131,5 +134,5 @@ CPU training step, and the SSIM metric. `make lint` runs flake8.
 - The binning model covers the resolution loss but not the change in
   noise statistics a genuinely faster exposure would bring.
 - The restored patterns are smoother than the raw targets: the
-  network does not reproduce shot noise, by design — structure is
-  restored, noise is not.
+  network restores structure and, by design, leaves the shot noise
+  out.

@@ -12,10 +12,9 @@ class UNet(nn.Module):
     128x128 pattern comes out. Skip tensors are zero-padded up to the
     decoder resolution before concatenation.
 
-    The output is a residual on top of bicubic upsampling of the
-    input: interpolation already recovers the smooth structure, so the
-    network only has to learn the detail interpolation cannot infer,
-    and it can never do worse than the interpolation it starts from.
+    The output is a residual added to a bicubic upsample of the
+    input. Interpolation already recovers the smooth structure; the
+    network learns the correction on top of it.
     """
 
     def __init__(self, n_channels=1, o_channels=1):

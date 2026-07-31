@@ -15,8 +15,8 @@ class UpDataset(Dataset):
 
     Every pattern in the scan yields a pair: the pattern resized to
     img_size is the target, and the target average-pooled 4x4 is the
-    input. Block averaging, not smooth resampling, because that is
-    what the detector does when it bins pixels for a fast scan.
+    input. The averaging matches the detector, which bins pixel
+    blocks when it trades resolution for speed.
     """
 
     def __init__(

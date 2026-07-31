@@ -1,7 +1,7 @@
 metadata:
   experiment_name: unet
   run_name: baseline
-  description: 4x upscaling, MSE loss, SSIM model selection
+  description: 4x upscaling, MSE + windowed-SSIM loss
 
 model:
   _target_: src.models.metamodel.UNetMetaModel
