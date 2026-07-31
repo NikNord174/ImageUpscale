@@ -29,7 +29,11 @@ class WindowedSSIM(nn.Module):
             'window', gaussian_kernel(window_size, sigma)[None, None])
 
     def forward(self, x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
-        window = self.window.to(device=x.device, dtype=x.dtype)
+        # Full precision on purpose: under fp16 autocast the variance
+        # E[x^2] - mu^2 cancels down to the same magnitude as C2.
+        x = x.float()
+        y = y.float()
+        window = self.window.to(device=x.device)
         mu_x = F.conv2d(x, window)
         mu_y = F.conv2d(y, window)
         var_x = F.conv2d(x * x, window) - mu_x ** 2
@@ -44,10 +48,9 @@ class WindowedSSIM(nn.Module):
 class MSESSIMLoss(nn.Module):
     """MSE plus a windowed-SSIM term.
 
-    MSE alone converges to the blurry average of every sharp
-    explanation of the input; the SSIM term charges for lost local
-    structure, which is exactly what the eye misses in MSE-only
-    outputs.
+    MSE by itself blurs: the optimum for an uncertain pixel is the
+    mean of all candidates. The SSIM term puts a price on losing
+    local structure.
     """
 
     def __init__(self, ssim_weight: float = 0.1):
@@ -66,11 +69,11 @@ class MSESSIMLoss(nn.Module):
 class GlobalSSIM(nn.Module):
     """SSIM over whole-image statistics, rescaled to [0, 1].
 
-    This is a simplification of the standard windowed SSIM: mean,
-    variance and covariance are computed once per image instead of in
-    sliding local windows, which makes it cheap enough to run on every
-    batch. Values are therefore not comparable to published SSIM
-    numbers; it is a training monitor, not a benchmark metric.
+    Simplification of the windowed SSIM: mean, variance and
+    covariance are computed once per image instead of in sliding
+    local windows, cheap enough to run on every batch. Use it to
+    compare epochs of one run; the values are not comparable to
+    published SSIM numbers.
     """
 
     def forward(self, x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
