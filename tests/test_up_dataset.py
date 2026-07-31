@@ -8,7 +8,7 @@ from src.datatools.transforms import to_tensor
 from src.datatools.up_dataset import UpDataset
 
 WIDTH = 64
-HEIGHT = 64
+HEIGHT = 48  # non-square on purpose: catches swapped reshape axes
 NUM_PATS = 6
 
 
