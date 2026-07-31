@@ -19,7 +19,9 @@ evaluation, tests) reproduces on a single laptop.
 *Held-out scan, never seen in training. The patterns are private lab
 data (polycrystalline nickel), so the repo ships no data or weights;
 the figure and the table below come from `scripts/evaluate.py` run
-against that scan.*
+against that scan. The diffusion approach from my DIFFRACT paper
+lives in its own repo:
+[NikNord174/DIFFRACT](https://github.com/NikNord174/DIFFRACT).*
 
 ## How it works
 
